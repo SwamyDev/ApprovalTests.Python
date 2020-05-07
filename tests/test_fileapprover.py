@@ -48,6 +48,28 @@ class FileApproverTests(unittest.TestCase):
         error = approver.verify(namer, writer, reporter)
         self.assertEqual(None, error)
 
+    def test_returns_error_when_custom_file_comparer_deems_them_different(self):
+        def custom_file_comparer(_approved, _received):
+            return False
+
+        namer = get_default_namer()
+        writer = StringWriter("b")
+        reporter = ReporterForTesting()
+        approver = FileApprover(custom_comparer=custom_file_comparer)
+        error = approver.verify(namer, writer, reporter)
+        self.assertEqual("Approval Mismatch", error)
+
+    def test_returns_none_when_custom_file_comparer_deems_them_equal(self):
+        def custom_file_comparer(_approved, _received):
+            return True
+
+        namer = get_default_namer()
+        writer = StringWriter("b")
+        reporter = GenericDiffReporterFactory().get_first_working()
+        approver = FileApprover(custom_comparer=custom_file_comparer)
+        error = approver.verify(namer, writer, reporter)
+        self.assertEqual(None, error)
+
 
 if __name__ == '__main__':
     unittest.main()

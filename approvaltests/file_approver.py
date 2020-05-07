@@ -7,6 +7,9 @@ def exists(path):
 
 
 class FileApprover(object):
+    def __init__(self, custom_comparer=None):
+        self._custom_comparer = custom_comparer
+
     def verify(self, namer, writer, reporter):
 
         base = namer.get_basename()
@@ -27,10 +30,12 @@ class FileApprover(object):
         reporter.report(received_file, approved_file)
         return False
 
-    @staticmethod
-    def are_files_the_same(approved_file, received_file):
+    def are_files_the_same(self, approved_file, received_file):
         if not exists(approved_file) or not exists(received_file):
             return False
+
+        if self._custom_comparer is not None:
+            return self._custom_comparer(approved_file, received_file)
 
         if os.stat(approved_file).st_size != os.stat(received_file).st_size:
             return False
